@@ -1,6 +1,7 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 import requests
+from sqlalchemy import asc
 from .models import Service, HealthCheck
 from .database import SessionLocal
 
@@ -26,11 +27,12 @@ def check_service(service):
                     status_code=response.status_code,
                     response_time_ms=duration,
                 )
+
                 if response.status_code == 200:
                     span_healthcheck.set_status(Status(StatusCode.OK))
                 else:
                     span_healthcheck.set_status(Status(StatusCode.ERROR))
-
+            
             except requests.RequestException as e:
                 health = HealthCheck(
                     service_id=service.id,

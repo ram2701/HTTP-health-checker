@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, abort
 from .models import Service, HealthCheck
 from .database import SessionLocal
 
@@ -63,7 +63,7 @@ def list_services():
     session = SessionLocal()
     services = session.query(Service).all()
     result = []
-    request_count.set(services.count(session.query(Service).all()))
+    request_count.set(len(services))
     for service in services:
         last_check = (
             session.query(HealthCheck)
@@ -81,3 +81,7 @@ def list_services():
         })
     session.close()
     return jsonify(result)
+
+@bp.route("/bad")
+def bad():
+    abort(400)
