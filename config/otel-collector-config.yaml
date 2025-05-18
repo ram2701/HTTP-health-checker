@@ -1,0 +1,55 @@
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+
+exporters:
+  debug:
+    verbosity: detailed
+
+  file/local:
+    path: /etc/otel-data
+
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    namespace: health-check
+    const_labels:
+      entorno: http-heatlh-checker
+    send_timestamps: true
+    enable_open_metrics: true
+
+  otlp/jaeger:
+    endpoint: jaeger:64317
+    tls:
+      insecure: true
+
+  otlphttp/loki:
+    # endpoint: http://10.0.2.15:3100/otlp
+    endpoint: http://loki:3100/otlp
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics/demo:
+      receivers: [otlp]
+      processors: [batch]
+      #exporters: [file/local, prometheus]
+      exporters: [prometheus]
+    traces/demo:
+      receivers: [otlp]
+      processors: [batch]
+      #exporters: [otlp/jaeger]
+      exporters: [otlp/jaeger]
+    logs/demo:
+      receivers: [otlp]
+      processors: [batch]
+      #exporters: [debug,file/local]
+      exporters: [otlphttp/loki]
