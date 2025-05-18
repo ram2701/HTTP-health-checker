@@ -1,0 +1,8 @@
+---
+- name: Shut down the docker containers
+  hosts: healthcheck
+
+  tasks:
+
+    - name: Docker compose down
+      command: docker compose down

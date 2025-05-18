@@ -1,0 +1,29 @@
+---
+- name: URLs for testing the app
+  hosts: healthcheck
+
+  tasks:
+
+    - name: Curl to a Website that returns 200
+      command: |
+        curl -X POST http://localhost:5000/services \
+           -H "Content-Type: application/json" \
+           -d '{"name": "Google", "url": "https://google.com"
+      args:
+        executable: /bin/bash
+
+    - name: Curl to a Website that returns 400
+      command: |
+        curl -X POST http://localhost:5000/services \
+           -H "Content-Type: application/json" \
+           -d '{"name": "Bad request", "url": "http://localhost:5000//bad"
+      args:
+        executable: /bin/bash
+      
+    - name: Curl to a Website that returns 404
+      command: |
+        curl -X POST http://localhost:5000/services \
+           -H "Content-Type: application/json" \
+           -d '{"name": "Google", "url": "https://google.com/ntfg"
+      args:
+        executable: /bin/bash

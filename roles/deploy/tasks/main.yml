@@ -1,0 +1,23 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for deploy
+# - name: Copy docker-compose.yml to root path
+#   copy:
+#     src: ../files/docker-compose.yml
+#     dest: ../../../
+
+# - name: Copy Dockerfile to root path
+#   copy:
+#     src: ../files/Dockerfile
+#     dest: ../../../
+
+# - name: Copy requirements.txt to root path
+#   copy:
+#     src: ../files/requirements.txt
+#     dest: ../../../
+
+- name: Deploy app using docker compose
+  command: docker compose up -d
+  args:
+    executable: /bin/bash
+    

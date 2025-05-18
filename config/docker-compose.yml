@@ -1,0 +1,73 @@
+services:
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: health
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    # environment:
+      # - OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
+      # - DATABASE_URL=postgresql://postgres:postgres@db:5432/health
+      # - ENV OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      # - ENV OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      # - ENV OTEL_SERVICE_NAME=flask-health-checker
+    depends_on:
+      db:
+        condition: service_healthy
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    volumes:
+      - ./config/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+      - ./data/otel-data:/etc/otel-data
+    ports:
+      - 1888:1888 # pprof extension
+      - 8888:8888 # Collector metrics exposed 
+      - 8889:8889 # Exporter metrics exposed
+      - 13133:13133 # Health check
+      - 4317:4317 # OLTP gRPC receiver
+      - 4318:4318 # OLTP HTTP receiver
+      - 55679:55679 # zpages extension
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+
+  jaeger:
+    image: jaegertracing/jaeger
+    ports:
+      - 16686:16686  # Web UI
+      - 64317:4317   # OTLP grcp
+      - 64318:4318   # OTLP http
+
+  loki:
+    image: grafana/loki
+    ports:
+      - 3100:3100
+
+  grafana:
+    image: grafana/grafana-oss
+    ports:
+      - 3000:3000
+
+
+volumes:
+  postgres_data:
