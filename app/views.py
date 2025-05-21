@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, abort
+from flask import Blueprint, request, jsonify, abort, render_template
 from .models import Service, HealthCheck
 from .database import SessionLocal
 
@@ -16,7 +16,16 @@ tracer = trace.get_tracer("create-service.tracer")
 meter = metrics.get_meter("healthcheck.meter")
 
 request_count = meter.create_gauge("healthcheck.request_counter")
-request_counter = meter.create_counter("healthcheck.counter")
+request_counter = meter.create_counter(name="healthcheck.counter", description="Request created in actual session")
+
+
+# @bp.route("/")
+# def index_page():
+#     session = SessionLocal()
+#     services = session.query(Service).all()
+#     session.close()
+#     render_template("index.html", session_variables = services)
+
 
 @bp.route("/services", methods=["POST"])
 def add_service():
@@ -25,6 +34,7 @@ def add_service():
         try:
             data = request.get_json(silent=True)
             if not data or "name" not in data or "url" not in data:
+                span_petition.set_status(Status(StatusCode.ERROR))
                 return {"error": "Not valid JSON. Expected: {name, url}"}, 400
 
             session = SessionLocal()
@@ -81,6 +91,32 @@ def list_services():
         })
     session.close()
     return jsonify(result)
+
+@bp.route("/remove")
+def remove():
+    session = SessionLocal()
+    key=request.values.get("id")
+    service = session.query(Service).filter_by(id=key).first()
+    if service:
+        session.delete(service)
+        session.commit()
+    session.close()
+
+@bp.route("/services/api/remove/<int:service_id>", methods=['DELETE'])
+def api_remove(service_id):
+    session = SessionLocal()
+    service = session.query(Service).filter_by(id=service_id).first()
+
+    if not service:
+        session.close()
+        abort(404)
+
+    session.delete(service)
+    session.commit()
+    session.close()
+
+    return jsonify({"message": "Service deleted"}), 200
+
 
 @bp.route("/bad")
 def bad():

@@ -10,7 +10,7 @@ class Service(Base):
     name = Column(String(120), nullable=False)
     url = Column(String(500), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    checks = relationship("HealthCheck", back_populates="service")
+    checks = relationship("HealthCheck", back_populates="service", cascade="all, delete-orphan")
 
 class HealthCheck(Base):
     __tablename__ = "health_check"

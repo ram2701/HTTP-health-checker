@@ -17,11 +17,6 @@ COPY . .
 ENV DATABASE_URL=postgresql://postgres:postgres@db:5432/health
 ENV OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
 ENV OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-ENV OTEL_SERVICE_NAME=flask-health-checker
 ENV OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
 
-# Comando para ejecutar la aplicación con instrumentación
 CMD ["opentelemetry-instrument", "--service_name", "healthcheck", "flask", "--app", "run.py", "run", "--host", "0.0.0.0"]
-
-# CMD [ "flask", "run", "--host", "0.0.0.0" ]
-# CMD ["opentelemetry-instrument", "python", "run.py"]
