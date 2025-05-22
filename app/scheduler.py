@@ -3,6 +3,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 import requests
 from sqlalchemy import asc
+
+from app.formatter import CustomFormatter
 from .models import Service, HealthCheck
 from .database import SessionLocal
 
@@ -13,6 +15,14 @@ meter = metrics.get_meter("scheduler.meter")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+ch.setFormatter(CustomFormatter())
+
+logger.addHandler(ch)
+
 
 tracer = trace.get_tracer("healthcheck.tracer")
 
@@ -40,10 +50,10 @@ def check_service(service):
 
                 if response.status_code == 200:
                     span_healthcheck.set_status(Status(StatusCode.OK))
-                    logger.warning(f"The page {service.name} has returned a 200")
+                    logger.info(f"The page {service.name} has returned a 200")
                 else:
                     span_healthcheck.set_status(Status(StatusCode.ERROR))
-                    logger.warning(f"The page {service.name} has returned a {response.status_code}")
+                    logger.error(f"The page {service.name} has returned a {response.status_code}")
 
 
             except requests.RequestException as e:

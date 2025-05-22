@@ -102,7 +102,7 @@ def remove():
         session.commit()
     session.close()
 
-@bp.route("/services/api/remove/<int:service_id>", methods=['DELETE'])
+@bp.route("/api/services/remove/<int:service_id>", methods=['DELETE'])
 def api_remove(service_id):
     session = SessionLocal()
     service = session.query(Service).filter_by(id=service_id).first()
